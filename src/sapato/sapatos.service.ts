@@ -1,57 +1,54 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { CreateSapatos } from "./DTO/create-sapato";
+import { UpdateSapato } from "./DTO/update-sapatos";
 import { Sapato } from "./sapatos.entity";
 
 @Injectable()
 export class SapatoService{
 
-    private sapatos:Sapato[] = [
-        {
-            id: 1,
-        nome: 'nike 123',
-        descricao: 'sap esportivo',
-        tamanho: '42-43',
-        valor: 150.00,
-        quantidade: 100,
-        },
-    ];
+    constructor(
+        @InjectRepository(Sapato)
+        private readonly sapatoRepositorio: Repository<Sapato>,
+    ){}
 
     findAll(){
-        return this.sapatos;
+        return this.sapatoRepositorio.find();
     }
 
     findOne(id: string){
-        const buscarTrue = this.sapatos.find((sapato:Sapato) => sapato.id === Number(id));
+        const buscarTrue = this.sapatoRepositorio.findOne(id);
 
         if(!buscarTrue){
-            throw new HttpException(`Sapato ID: ${id} not found.`, HttpStatus.NOT_FOUND)
+            throw new NotFoundException(`Sapato ID: ${id} not found.`)
         }else{
             return buscarTrue;
         }
     }
 
-    create(createCursoDTO: any){
-        this.sapatos.push(createCursoDTO);
-        return createCursoDTO;
+    create(createSapatoDTO: CreateSapatos){
+        const sapatoCreate = this.sapatoRepositorio.create(createSapatoDTO);
+        return this.sapatoRepositorio.save(sapatoCreate);
     }
 
-    update(id:string, updateDTO: any){
-        const indexSapato = this.sapatos.findIndex(
-            (sapato:Sapato) => sapato.id === Number(id)
-        );
-
-        this.sapatos[indexSapato] = updateDTO;
-    }
-
-    remove(id: string){
-        const indexSapato = this.sapatos.findIndex(
-            (sapato:Sapato) => sapato.id === Number(id)
-        );
-
-        if(indexSapato >= 0){
-            this.sapatos.splice(indexSapato, 1);
-            return `Sapato de id:${id} deletado com sucesso!`
-        }else{
-            throw new HttpException(`Sapato ID: ${id} not found.`, HttpStatus.NOT_FOUND)
+    async update(id:string, updateDTO: UpdateSapato){
+        const sapatoUpdate = await this.sapatoRepositorio.preload({
+            id: +id,
+            ...updateDTO,
+        })
+        if(!sapatoUpdate){
+            throw new NotFoundException(`Sapato ID: ${id} not found.`);
         }
+        return this.sapatoRepositorio.save(sapatoUpdate);
+    }
+
+    async remove(id: string){
+        const sapatoRemove = await this.sapatoRepositorio.findOne(id);
+
+        if(!sapatoRemove){
+            throw new NotFoundException(`Sapato ID: ${id} not found.`);
+        }
+        return this.sapatoRepositorio.remove(sapatoRemove);
     }
 }

@@ -10,9 +10,9 @@ import { SapatosModule } from './sapato/sapatos.module';
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
-      port: 5432,
+      port: 5433,
       username: 'postgres',
-      password: 'a',
+      password: 'docker',
       database: 'postgres',
       autoLoadEntities: true,
       synchronize: true,
