@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Tamanhos } from "./tamanhos.entity";
 
 @Entity('Sapatos')
 export class Sapato{
@@ -14,6 +15,9 @@ export class Sapato{
     @Column()
     disponivel: boolean;
 
-    @Column('json',{nullable: true})
-    tamanhos: string[];
+    @JoinTable()
+    @ManyToMany(()=>Tamanhos, (tamanhos:Tamanhos)=> tamanhos.sapatos, {
+        cascade: true
+    }) 
+    tamanhos: Tamanhos[];
 }
